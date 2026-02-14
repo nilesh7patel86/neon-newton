@@ -14,11 +14,21 @@
 
     <modules>
         <module>welcome-plugin</module>
-        <module>another-plugin</module>
+        <module>complex-plugin</module>
+        <module>zip-plugin</module>
     </modules>
 
     <dependencies>
-
+        <dependency>
+            <groupId>com.neon.newton</groupId>
+            <artifactId>app-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.pf4j</groupId>
+            <artifactId>pf4j</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -58,9 +58,27 @@ public class MainController {
     }
 
     private void updateSidebar() {
-        // Clear existing plugin buttons (keep title and refresh btn)
+        // Clear existing plugin buttons (keep title and refresh btn, and manage btn)
         sidebar.getChildren()
-                .removeIf(node -> node instanceof Button && !((Button) node).getText().equals("Refresh Plugins"));
+                .removeIf(node -> node instanceof Button &&
+                        !((Button) node).getText().equals("Refresh Plugins") &&
+                        !((Button) node).getText().equals("Manage Plugins"));
+
+        // Ensure Manage Plugins button exists
+        boolean hasManageBtn = sidebar.getChildren().stream()
+                .anyMatch(node -> node instanceof Button && ((Button) node).getText().equals("Manage Plugins"));
+
+        if (!hasManageBtn) {
+            Button manageBtn = new Button("Manage Plugins");
+            manageBtn.getStyleClass().add("manage-button");
+            manageBtn.setMaxWidth(Double.MAX_VALUE);
+            manageBtn.setOnAction(e -> {
+                activeExtension = null;
+                contentArea.getChildren().clear();
+                contentArea.getChildren().add(new PluginManagementView());
+            });
+            sidebar.getChildren().add(manageBtn);
+        }
 
         for (ViewExtension ext : PluginService.getInstance().getExtensions()) {
             Button navButton = new Button(ext.getMenuTitle());
@@ -77,7 +95,7 @@ public class MainController {
         // Cleanup content if active plugin is gone
         if (activeExtension != null && !PluginService.getInstance().getExtensions().contains(activeExtension)) {
             contentArea.getChildren().clear();
-            contentArea.getChildren().add(new Label("Plugin was unloaded."));
+            contentArea.getChildren().add(new Label("Plugin was unloaded or disabled."));
             activeExtension = null;
         }
     }

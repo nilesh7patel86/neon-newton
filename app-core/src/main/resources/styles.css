@@ -59,3 +59,52 @@
 .refresh-button:hover {
     -fx-background-color: #3a3a3a;
 }
+
+.manage-button {
+    -fx-background-color: #333333;
+    -fx-text-fill: #ffa500;
+    -fx-font-weight: bold;
+    -fx-padding: 10 15;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+    -fx-margin: 0 0 10 0;
+}
+
+.manage-button:hover {
+    -fx-background-color: #444444;
+}
+
+.plugin-manager-view {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 12;
+}
+
+.plugin-list-container {
+    -fx-padding: 0 5 0 0;
+}
+
+.action-button {
+    -fx-background-color: #1e88e5;
+    -fx-text-fill: white;
+    -fx-padding: 8 15;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+.action-button:hover {
+    -fx-background-color: #1976d2;
+}
+
+.uninstall-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ff5252;
+    -fx-border-color: #ff5252;
+    -fx-border-radius: 5;
+    -fx-padding: 8 15;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+.uninstall-button:hover {
+    -fx-background-color: rgba(255, 82, 82, 0.1);
+}

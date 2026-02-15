@@ -29,10 +29,10 @@ public class PluginManagementView extends VBox {
 
         VBox titleBox = new VBox(5);
         Label title = new Label("Plugin Manager");
-        title.setStyle("-fx-font-size: 24px; -fx-text-fill: white; -fx-font-weight: bold;");
+        title.getStyleClass().add("plugin-manager-title");
 
         Label desc = new Label("Enable, disable, or install plugins at runtime.");
-        desc.setStyle("-fx-text-fill: #888;");
+        desc.getStyleClass().add("plugin-manager-desc");
         titleBox.getChildren().addAll(title, desc);
         HBox.setHgrow(titleBox, Priority.ALWAYS);
 
@@ -63,15 +63,14 @@ public class PluginManagementView extends VBox {
     private void setupThemeSelector() {
         HBox themeBox = new HBox(15);
         themeBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        themeBox.setStyle("-fx-padding: 20 0; -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 0 0 1 0;");
+        themeBox.getStyleClass().add("theme-selector-container");
 
         Label themeLabel = new Label("Application Theme:");
-        themeLabel.setStyle("-fx-text-fill: #aaa; -fx-font-size: 14px;");
+        themeLabel.getStyleClass().add("theme-label");
 
         javafx.scene.control.ComboBox<Theme> themeCombo = new javafx.scene.control.ComboBox<>();
         themeCombo.setItems(ThemeService.getInstance().getAvailableThemes());
         themeCombo.setValue(ThemeService.getInstance().getCurrentTheme());
-        themeCombo.setStyle("-fx-background-color: #333; -fx-text-fill: white;");
 
         themeCombo.setOnAction(e -> ThemeService.getInstance().setTheme(themeCombo.getValue()));
 
@@ -109,10 +108,11 @@ public class PluginManagementView extends VBox {
 
             VBox info = new VBox(5);
             Label name = new Label(plugin.getPluginId() + " [" + plugin.getDescriptor().getVersion() + "]");
-            name.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+            name.getStyleClass().add("plugin-manager-title"); // Reuse for consistency or add a small variant
+            name.setStyle("-fx-font-size: 16px;"); // Minor tweak
 
             Label stateLabel = new Label("Status: " + plugin.getPluginState());
-            stateLabel.setStyle("-fx-text-fill: " + getStatusColor(plugin.getPluginState()) + ";");
+            stateLabel.getStyleClass().add(getStatusClass(plugin.getPluginState()));
 
             info.getChildren().addAll(name, stateLabel);
             HBox.setHgrow(info, Priority.ALWAYS);
@@ -143,16 +143,16 @@ public class PluginManagementView extends VBox {
         }
     }
 
-    private String getStatusColor(PluginState state) {
+    private String getStatusClass(PluginState state) {
         switch (state) {
             case STARTED:
-                return "#00ffcc";
+                return "plugin-status-started";
             case STOPPED:
-                return "#ffcc00";
+                return "plugin-status-stopped";
             case DISABLED:
-                return "#ff4444";
+                return "plugin-status-disabled";
             default:
-                return "#aaaaaa";
+                return "plugin-status-default";
         }
     }
 }

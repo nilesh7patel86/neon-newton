@@ -1,11 +1,10 @@
 .root {
-    -fx-base: #121212;
-    -fx-background-color: #0f0f0f;
+    /* AtlantaFX variables are already defined in the user agent stylesheet */
 }
 
 .sidebar {
-    -fx-background-color: rgba(30, 30, 30, 0.9);
-    -fx-border-color: rgba(255, 255, 255, 0.05);
+    -fx-background-color: -color-bg-subtle;
+    -fx-border-color: -color-border-default;
     -fx-border-width: 0 1 0 0;
     -fx-alignment: TOP_LEFT;
 }
@@ -24,7 +23,7 @@
 
 .nav-button {
     -fx-background-color: transparent;
-    -fx-text-fill: #e0e0e0;
+    -fx-text-fill: -color-fg-default;
     -fx-alignment: CENTER_LEFT;
     -fx-padding: 12 15;
     -fx-font-size: 14px;
@@ -38,8 +37,8 @@
 }
 
 .nav-button:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.1);
-    -fx-text-fill: #ffffff;
+    -fx-background-color: -color-bg-subtle;
+    -fx-text-fill: -color-accent-fg;
 }
 
 .nav-button:pressed {
@@ -47,7 +46,7 @@
 }
 
 .content-area {
-    -fx-background-color: #121212;
+    -fx-background-color: -color-bg-default;
     -fx-padding: 40;
 }
 
@@ -57,8 +56,8 @@
 }
 
 .refresh-button {
-    -fx-background-color: #2a2a2a;
-    -fx-text-fill: #00ffcc;
+    -fx-background-color: -color-accent-subtle;
+    -fx-text-fill: -color-accent-fg;
     -fx-font-weight: bold;
     -fx-padding: 8 15;
     -fx-background-radius: 5;
@@ -67,12 +66,13 @@
 }
 
 .refresh-button:hover {
-    -fx-background-color: #3a3a3a;
+    -fx-background-color: -color-accent-emphasis;
+    -fx-text-fill: -color-fg-on-emphasis;
 }
 
 .manage-button {
-    -fx-background-color: #333333;
-    -fx-text-fill: #ffa500;
+    -fx-background-color: -color-neutral-subtle;
+    -fx-text-fill: -color-fg-default;
     -fx-font-weight: bold;
     -fx-padding: 10 15;
     -fx-background-radius: 5;
@@ -81,7 +81,8 @@
 }
 
 .manage-button:hover {
-    -fx-background-color: #444444;
+    -fx-background-color: -color-neutral-emphasis;
+    -fx-text-fill: -color-fg-on-emphasis;
 }
 
 .toggle-button {
@@ -101,8 +102,11 @@
 }
 
 .plugin-manager-view {
-    -fx-background-color: #1a1a1a;
+    -fx-background-color: -color-bg-default;
     -fx-background-radius: 12;
+    -fx-border-color: -color-border-default;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
 }
 
 .plugin-list-container {

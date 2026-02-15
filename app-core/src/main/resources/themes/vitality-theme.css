@@ -1,0 +1,80 @@
+/* Vitality Theme - Soft Teal Design */
+
+.root {
+    -color-bg-default: #ebf5f5;
+    /* Very light teal-white for content background */
+    -color-bg-subtle: linear-gradient(to bottom, #76C8C3, #5AACC1);
+    /* The main sidebar gradient */
+    -color-fg-default: #ffffff;
+    -color-fg-muted: rgba(255, 255, 255, 0.7);
+    -color-border-default: transparent;
+
+    -color-accent-fg: #76C8C3;
+    -color-accent-subtle: #ffffff;
+    -color-accent-emphasis: #ffffff;
+}
+
+.sidebar {
+    -fx-background-color: -color-bg-subtle;
+    -fx-padding: 30 20;
+    -fx-background-radius: 0 40 40 0;
+    /* Rounded right edge for sidebar */
+}
+
+.sidebar-title {
+    -fx-text-fill: -color-fg-default;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-padding: 0 0 30 0;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-fg-default;
+    -fx-background-radius: 20;
+    -fx-padding: 15 20;
+    -fx-transition: 0.3s;
+}
+
+.nav-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-button.active {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: -color-accent-fg;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 10, 0, 0, 5);
+}
+
+/* Footer / Action buttons */
+.refresh-button {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+}
+
+.manage-button {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+}
+
+.go-out-button {
+    -fx-background-color: #4C9da9;
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-padding: 10 20;
+    -fx-font-weight: bold;
+}
+
+.go-out-button:hover {
+    -fx-background-color: #3e8d97;
+}
+
+.content-area {
+    -fx-background-color: -color-bg-default;
+}
+
+.welcome-text {
+    -fx-text-fill: #458282;
+}

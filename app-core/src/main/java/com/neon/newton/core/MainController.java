@@ -36,10 +36,12 @@ public class MainController {
             activeExtension = null;
             contentArea.getChildren().clear();
             contentArea.getChildren().add(new PluginManagementView());
+            sidebar.setActiveItem("MANAGE");
         } else if (selection instanceof ViewExtension ext) {
             activeExtension = ext;
             contentArea.getChildren().clear();
             contentArea.getChildren().add(ext.getView());
+            sidebar.setActiveItem(ext);
         }
     }
 

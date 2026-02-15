@@ -15,27 +15,36 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.material2.Material2AL;
 import org.kordamp.ikonli.material2.Material2MZ;
 
 import java.util.function.Consumer;
 
 public class Sidebar extends VBox {
+    private static final String PREF_SIDEBAR_COLLAPSED = "sidebar-collapsed";
     private final Consumer<Object> onSelection; // Object can be ViewExtension or "MANAGE"
-    private boolean collapsed = false;
+    private boolean collapsed;
     private final VBox navContainer;
     private final Button toggleBtn;
     private final Button manageBtn;
     private final Button refreshBtn;
+    private final Button logoutBtn;
+    private Object activeItem; // ViewExtension or "MANAGE"
     private final Label titleLabel;
     private final Timeline animation = new Timeline();
 
     public Sidebar(Consumer<Object> onSelection) {
         this.onSelection = onSelection;
+        this.collapsed = UserPreferenceService.getInstance().getBoolean(PREF_SIDEBAR_COLLAPSED, false);
 
         getStyleClass().add("sidebar");
+        if (collapsed) {
+            getStyleClass().add("collapsed");
+        }
+
         setSpacing(10);
         setPadding(new Insets(20));
-        setPrefWidth(250);
+        setPrefWidth(collapsed ? 80 : 250);
         setMinWidth(USE_PREF_SIZE);
         setMaxWidth(USE_PREF_SIZE);
 
@@ -48,7 +57,7 @@ public class Sidebar extends VBox {
         toggleBtn.getStyleClass().add("toggle-button");
         toggleBtn.setOnAction(e -> toggle());
 
-        titleLabel = new Label("APPLICATIONS");
+        titleLabel = new Label(collapsed ? "" : "APPLICATIONS");
         titleLabel.getStyleClass().add("sidebar-title");
 
         header.getChildren().addAll(toggleBtn, titleLabel);
@@ -60,19 +69,31 @@ public class Sidebar extends VBox {
         // Footer section
         VBox footer = new VBox(5);
 
-        refreshBtn = new Button("Refresh Plugins");
+        refreshBtn = new Button(collapsed ? "" : "Refresh Plugins");
         refreshBtn.setGraphic(new FontIcon(Material2MZ.REFRESH));
         refreshBtn.getStyleClass().add("refresh-button");
         refreshBtn.setMaxWidth(Double.MAX_VALUE);
         refreshBtn.setOnAction(e -> PluginService.getInstance().reload());
+        if (collapsed)
+            Tooltip.install(refreshBtn, new Tooltip("Refresh Plugins"));
 
-        manageBtn = new Button("Manage Plugins");
+        manageBtn = new Button(collapsed ? "" : "Manage Plugins");
         manageBtn.setGraphic(new FontIcon(Material2MZ.SETTINGS));
         manageBtn.getStyleClass().add("manage-button");
         manageBtn.setMaxWidth(Double.MAX_VALUE);
         manageBtn.setOnAction(e -> onSelection.accept("MANAGE"));
+        if (collapsed)
+            Tooltip.install(manageBtn, new Tooltip("Manage Plugins"));
 
-        footer.getChildren().addAll(refreshBtn, manageBtn);
+        logoutBtn = new Button(collapsed ? "" : "Go Out");
+        logoutBtn.setGraphic(new FontIcon(Material2AL.LOG_OUT));
+        logoutBtn.getStyleClass().add("go-out-button");
+        logoutBtn.setMaxWidth(Double.MAX_VALUE);
+        logoutBtn.setOnAction(e -> Platform.exit());
+        if (collapsed)
+            Tooltip.install(logoutBtn, new Tooltip("Go Out"));
+
+        footer.getChildren().addAll(refreshBtn, manageBtn, logoutBtn);
 
         getChildren().addAll(header, navContainer, footer);
 
@@ -81,6 +102,7 @@ public class Sidebar extends VBox {
 
     private void toggle() {
         collapsed = !collapsed;
+        UserPreferenceService.getInstance().setBoolean(PREF_SIDEBAR_COLLAPSED, collapsed);
 
         animation.stop();
         animation.getKeyFrames().clear();
@@ -93,6 +115,7 @@ public class Sidebar extends VBox {
             titleLabel.setText("APPLICATIONS");
             refreshBtn.setText("Refresh Plugins");
             manageBtn.setText("Manage Plugins");
+            logoutBtn.setText("Go Out");
             toggleBtn.setGraphic(new FontIcon(Material2MZ.MENU));
             Tooltip.uninstall(refreshBtn, null);
             Tooltip.uninstall(manageBtn, null);
@@ -113,6 +136,7 @@ public class Sidebar extends VBox {
                 titleLabel.setText("");
                 refreshBtn.setText("");
                 manageBtn.setText("");
+                logoutBtn.setText("");
                 updatePluginButtons();
             }
         });
@@ -144,7 +168,24 @@ public class Sidebar extends VBox {
             }
 
             navButton.setOnAction(e -> onSelection.accept(ext));
+
+            if (ext.equals(activeItem)) {
+                navButton.getStyleClass().add("active");
+            }
+
             navContainer.getChildren().add(navButton);
         }
+    }
+
+    public void setActiveItem(Object activeItem) {
+        this.activeItem = activeItem;
+
+        // Update manage button active state
+        manageBtn.getStyleClass().remove("active");
+        if ("MANAGE".equals(activeItem)) {
+            manageBtn.getStyleClass().add("active");
+        }
+
+        updatePluginButtons();
     }
 }

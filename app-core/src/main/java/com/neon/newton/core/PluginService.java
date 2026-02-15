@@ -8,8 +8,8 @@ import org.pf4j.*;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Map;
+import java.util.concurrent.*;
 
 public class PluginService {
     private static PluginService instance;
@@ -22,6 +22,12 @@ public class PluginService {
         t.setDaemon(true);
         return t;
     });
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "PluginDebounceScheduler");
+        t.setDaemon(true);
+        return t;
+    });
+    private final Map<Path, Long> lastEventMap = new ConcurrentHashMap<>();
 
     private PluginService() {
         // Resolve the base directory for data (plugins, preferences)
@@ -75,56 +81,29 @@ public class PluginService {
                     WatchKey key;
                     while ((key = watchService.take()) != null) {
                         for (WatchEvent<?> event : key.pollEvents()) {
-                            WatchEvent.Kind<?> kind = event.kind();
-                            if (kind == StandardWatchEventKinds.OVERFLOW)
+                            if (event.kind() == StandardWatchEventKinds.OVERFLOW)
                                 continue;
 
                             Path fileName = (Path) event.context();
                             String nameStr = fileName.toString();
 
-                            // Only care about jars and zips. Ignore temp files (common during copy).
                             if ((nameStr.endsWith(".jar") || nameStr.endsWith(".zip")) &&
                                     !nameStr.startsWith(".") && !nameStr.contains("~")) {
 
-                                System.out.println("Detected interesting change: " + nameStr);
+                                Path fullPath = pluginsRoot.resolve(fileName);
+                                long now = System.currentTimeMillis();
+                                lastEventMap.put(fullPath, now);
 
-                                // Debounce: Wait for file to be completely written.
-                                // Large files can take multiple write events.
-                                Thread.sleep(1000);
+                                System.out.println("Detected change for: " + nameStr + ", scheduling check...");
 
-                                Platform.runLater(() -> {
-                                    try {
-                                        Path fullPath = pluginsRoot.resolve(fileName);
-                                        if (!Files.exists(fullPath))
-                                            return;
-
-                                        System.out.println("Attempting to auto-load: " + nameStr);
-
-                                        // If already loaded, unload first to support "hot swap" of same file
-                                        PluginWrapper existing = pluginManager.getPlugins().stream()
-                                                .filter(p -> p.getPluginPath().equals(fullPath))
-                                                .findFirst().orElse(null);
-
-                                        if (existing != null) {
-                                            System.out.println(
-                                                    "Plugin already loaded, unloading first: "
-                                                            + existing.getPluginId());
-                                            pluginManager.unloadPlugin(existing.getPluginId());
-                                        }
-
-                                        String pluginId = pluginManager.loadPlugin(fullPath);
-                                        if (pluginId != null) {
-                                            pluginManager.startPlugin(pluginId);
-                                            refreshLists();
-                                            System.out.println("Successfully auto-loaded: " + pluginId);
-                                        }
-                                    } catch (PluginAlreadyLoadedException p) {
-                                        System.err.println("Auto-load failed for " + nameStr + ": " + p.getMessage());
-                                    } catch (Exception e) {
-                                        System.err.println("Auto-load failed for " + nameStr + ": " + e.getMessage());
-                                        e.printStackTrace();
+                                scheduler.schedule(() -> {
+                                    Long lastEvent = lastEventMap.get(fullPath);
+                                    if (lastEvent != null && lastEvent == now) {
+                                        // No newer events for this file in the last 1000ms
+                                        lastEventMap.remove(fullPath);
+                                        Platform.runLater(() -> processPluginPath(fullPath, nameStr));
                                     }
-                                });
+                                }, 1000, TimeUnit.MILLISECONDS);
                             }
                         }
                         key.reset();
@@ -137,6 +116,32 @@ public class PluginService {
             });
         } catch (IOException e) {
             System.err.println("Could not start plugin monitoring: " + e.getMessage());
+        }
+    }
+
+    private void processPluginPath(Path fullPath, String nameStr) {
+        try {
+            if (!Files.exists(fullPath))
+                return;
+
+            PluginWrapper existing = pluginManager.getPlugins().stream()
+                    .filter(p -> p.getPluginPath().equals(fullPath))
+                    .findFirst().orElse(null);
+
+            if (existing != null) {
+                System.out.println("Plugin already loaded, reloading: " + existing.getPluginId());
+                pluginManager.unloadPlugin(existing.getPluginId());
+            }
+
+            System.out.println("Attempting to auto-load: " + nameStr);
+            String pluginId = pluginManager.loadPlugin(fullPath);
+            if (pluginId != null) {
+                pluginManager.startPlugin(pluginId);
+                refreshLists();
+                System.out.println("Successfully auto-loaded: " + pluginId);
+            }
+        } catch (Exception e) {
+            System.err.println("Auto-load failed for " + nameStr + ": " + e.getMessage());
         }
     }
 
@@ -207,13 +212,9 @@ public class PluginService {
     public void installPlugin(Path sourcePath) throws IOException {
         Path pluginsDir = pluginManager.getPluginsRoot();
         Path targetPath = pluginsDir.resolve(sourcePath.getFileName());
-        Files.copy(sourcePath, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
-        String pluginId = pluginManager.loadPlugin(targetPath);
-        if (pluginId != null) {
-            pluginManager.startPlugin(pluginId);
-        }
-        refreshLists();
+        System.out.println("Installing plugin by copying to: " + targetPath);
+        Files.copy(sourcePath, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
 
     public void stop() {

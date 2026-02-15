@@ -4,9 +4,15 @@
 }
 
 .sidebar {
-    -fx-background-color: rgba(30, 30, 30, 0.8);
+    -fx-background-color: rgba(30, 30, 30, 0.9);
     -fx-border-color: rgba(255, 255, 255, 0.05);
     -fx-border-width: 0 1 0 0;
+    -fx-alignment: TOP_LEFT;
+}
+
+.sidebar.collapsed {
+    -fx-alignment: TOP_CENTER;
+    -fx-padding: 20 10;
 }
 
 .sidebar-title {
@@ -24,7 +30,11 @@
     -fx-font-size: 14px;
     -fx-background-radius: 8;
     -fx-cursor: hand;
-    -fx-transition: all 0.3s ease;
+}
+
+.sidebar.collapsed .nav-button {
+    -fx-alignment: CENTER;
+    -fx-padding: 12 0;
 }
 
 .nav-button:hover {
@@ -72,6 +82,22 @@
 
 .manage-button:hover {
     -fx-background-color: #444444;
+}
+
+.toggle-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #00ffcc;
+    -fx-cursor: hand;
+    -fx-padding: 5;
+    -fx-background-radius: 5;
+}
+
+.toggle-button:hover {
+    -fx-background-color: rgba(0, 255, 204, 0.1);
+}
+
+.sidebar.collapsed .sidebar-title {
+    -fx-padding: 0;
 }
 
 .plugin-manager-view {

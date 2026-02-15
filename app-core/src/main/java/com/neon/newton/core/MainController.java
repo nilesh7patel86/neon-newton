@@ -1,45 +1,26 @@
 package com.neon.newton.core;
 
 import com.neon.newton.api.ViewExtension;
-import javafx.collections.ListChangeListener;
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 
 public class MainController {
     private final BorderPane root;
-    private final VBox sidebar;
+    private final Sidebar sidebar;
     private final StackPane contentArea;
     private ViewExtension activeExtension;
 
     public MainController() {
         root = new BorderPane();
-        sidebar = new VBox(10);
         contentArea = new StackPane();
+        sidebar = new Sidebar(this::handleSelection);
 
         setupUI();
-        initPluginObserver();
     }
 
     private void setupUI() {
-        sidebar.setPrefWidth(250);
-        sidebar.getStyleClass().add("sidebar");
-        sidebar.setPadding(new Insets(20));
-
-        Label title = new Label("APPLICATIONS");
-        title.getStyleClass().add("sidebar-title");
-        sidebar.getChildren().add(title);
-
-        // Add a Refresh Button
-        Button refreshBtn = new Button("Refresh Plugins");
-        refreshBtn.getStyleClass().add("refresh-button");
-        refreshBtn.setOnAction(e -> PluginService.getInstance().reload());
-        sidebar.getChildren().add(refreshBtn);
-
         contentArea.getStyleClass().add("content-area");
 
         Label welcomeMsg = new Label("Select a plugin to begin");
@@ -50,53 +31,15 @@ public class MainController {
         root.setCenter(contentArea);
     }
 
-    private void initPluginObserver() {
-        PluginService.getInstance().getExtensions().addListener((ListChangeListener<ViewExtension>) c -> {
-            updateSidebar();
-        });
-        updateSidebar();
-    }
-
-    private void updateSidebar() {
-        // Clear existing plugin buttons (keep title and refresh btn, and manage btn)
-        sidebar.getChildren()
-                .removeIf(node -> node instanceof Button &&
-                        !((Button) node).getText().equals("Refresh Plugins") &&
-                        !((Button) node).getText().equals("Manage Plugins"));
-
-        // Ensure Manage Plugins button exists
-        boolean hasManageBtn = sidebar.getChildren().stream()
-                .anyMatch(node -> node instanceof Button && ((Button) node).getText().equals("Manage Plugins"));
-
-        if (!hasManageBtn) {
-            Button manageBtn = new Button("Manage Plugins");
-            manageBtn.getStyleClass().add("manage-button");
-            manageBtn.setMaxWidth(Double.MAX_VALUE);
-            manageBtn.setOnAction(e -> {
-                activeExtension = null;
-                contentArea.getChildren().clear();
-                contentArea.getChildren().add(new PluginManagementView());
-            });
-            sidebar.getChildren().add(manageBtn);
-        }
-
-        for (ViewExtension ext : PluginService.getInstance().getExtensions()) {
-            Button navButton = new Button(ext.getMenuTitle(), ext.getIcon());
-            navButton.setMaxWidth(Double.MAX_VALUE);
-            navButton.getStyleClass().add("nav-button");
-            navButton.setOnAction(e -> {
-                activeExtension = ext;
-                contentArea.getChildren().clear();
-                contentArea.getChildren().add(ext.getView());
-            });
-            sidebar.getChildren().add(navButton);
-        }
-
-        // Cleanup content if active plugin is gone
-        if (activeExtension != null && !PluginService.getInstance().getExtensions().contains(activeExtension)) {
-            contentArea.getChildren().clear();
-            contentArea.getChildren().add(new Label("Plugin was unloaded or disabled."));
+    private void handleSelection(Object selection) {
+        if (selection instanceof String && selection.equals("MANAGE")) {
             activeExtension = null;
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(new PluginManagementView());
+        } else if (selection instanceof ViewExtension ext) {
+            activeExtension = ext;
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(ext.getView());
         }
     }
 

@@ -81,7 +81,7 @@ public class MainController {
         }
 
         for (ViewExtension ext : PluginService.getInstance().getExtensions()) {
-            Button navButton = new Button(ext.getMenuTitle());
+            Button navButton = new Button(ext.getMenuTitle(), ext.getIcon());
             navButton.setMaxWidth(Double.MAX_VALUE);
             navButton.getStyleClass().add("nav-button");
             navButton.setOnAction(e -> {

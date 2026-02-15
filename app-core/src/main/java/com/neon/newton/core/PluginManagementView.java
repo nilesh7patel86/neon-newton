@@ -56,6 +56,27 @@ public class PluginManagementView extends VBox {
 
         header.getChildren().addAll(titleBox, installBtn);
         getChildren().add(header);
+
+        setupThemeSelector();
+    }
+
+    private void setupThemeSelector() {
+        HBox themeBox = new HBox(15);
+        themeBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        themeBox.setStyle("-fx-padding: 20 0; -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 0 0 1 0;");
+
+        Label themeLabel = new Label("Application Theme:");
+        themeLabel.setStyle("-fx-text-fill: #aaa; -fx-font-size: 14px;");
+
+        javafx.scene.control.ComboBox<Theme> themeCombo = new javafx.scene.control.ComboBox<>();
+        themeCombo.setItems(ThemeService.getInstance().getAvailableThemes());
+        themeCombo.setValue(ThemeService.getInstance().getCurrentTheme());
+        themeCombo.setStyle("-fx-background-color: #333; -fx-text-fill: white;");
+
+        themeCombo.setOnAction(e -> ThemeService.getInstance().setTheme(themeCombo.getValue()));
+
+        themeBox.getChildren().addAll(themeLabel, themeCombo);
+        getChildren().add(themeBox);
     }
 
     private void setupPluginList() {

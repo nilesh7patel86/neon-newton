@@ -15,6 +15,7 @@
         <maven.compiler.target>25</maven.compiler.target>
         <javafx.version>25.0.2</javafx.version>
         <pf4j.version>3.10.0</pf4j.version>
+        <ikonli.version>12.4.0</ikonli.version>
     </properties>
 
     <modules>
@@ -36,6 +37,21 @@
                 <version>${javafx.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-media</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-web</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-swinmg</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.pf4j</groupId>
                 <artifactId>pf4j</artifactId>
                 <version>${pf4j.version}</version>
@@ -44,6 +60,14 @@
                 <groupId>com.neon.newton</groupId>
                 <artifactId>app-api</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kordamp.ikonli</groupId>
+                <artifactId>ikonli-bom</artifactId>
+                <version>${ikonli.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

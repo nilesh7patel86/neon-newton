@@ -7,6 +7,8 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
+import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.material2.Material2AL;
 import org.pf4j.Extension;
 
 import java.util.Map;
@@ -45,7 +47,7 @@ public class ComplexViewExtension implements ViewExtension {
     }
 
     @Override
-    public String getIconPath() {
-        return null;
+    public Node getIcon() {
+        return FontIcon.of(Material2AL.EXTENSION);
     }
 }

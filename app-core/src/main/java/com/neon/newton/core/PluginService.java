@@ -24,18 +24,23 @@ public class PluginService {
     });
 
     private PluginService() {
-        // Resolve absolute path to the project root's plugins directory
-        Path currentDir = Paths.get("").toAbsolutePath();
-        Path pluginsDir = currentDir.resolve("plugins");
+        // Resolve the base directory for data (plugins, preferences)
+        // In a portable app, we want these next to the executable.
+        Path baseDir = Paths.get("").toAbsolutePath();
 
-        // If we are in the app-core submodule, or if the local plugins folder
-        // doesn't have our known plugins, look in the parent directory.
-        if (currentDir.toString().endsWith("app-core") ||
-                !Files.exists(pluginsDir.resolve("welcome-plugin-1.0-SNAPSHOT.jar"))) {
+        // Check if we are in a dev environment (running from app-core or parent)
+        if (baseDir.toString().endsWith("app-core")) {
+            baseDir = baseDir.getParent();
+        }
 
-            Path parentPlugins = currentDir.getParent().resolve("plugins");
-            if (Files.exists(parentPlugins)) {
-                pluginsDir = parentPlugins;
+        Path pluginsDir = baseDir.resolve("plugins");
+
+        // Ensure the directory exists
+        if (!Files.exists(pluginsDir)) {
+            try {
+                Files.createDirectories(pluginsDir);
+            } catch (IOException e) {
+                System.err.println("Could not create plugins directory: " + e.getMessage());
             }
         }
 

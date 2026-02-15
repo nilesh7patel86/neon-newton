@@ -4,6 +4,8 @@ import com.neon.newton.api.ViewExtension;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.material2.Material2AL;
 import org.pf4j.Extension;
 
 @Extension
@@ -27,7 +29,7 @@ public class WelcomeViewExtension implements ViewExtension {
     }
 
     @Override
-    public String getIconPath() {
-        return null;
+    public Node getIcon() {
+        return FontIcon.of(Material2AL.ADD_SHOPPING_CART);
     }
 }

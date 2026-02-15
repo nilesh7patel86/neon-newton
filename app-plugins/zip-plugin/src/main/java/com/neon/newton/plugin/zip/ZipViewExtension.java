@@ -5,6 +5,9 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import org.apache.commons.lang3.StringUtils;
+import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.material2.Material2AL;
+import org.kordamp.ikonli.material2.Material2MZ;
 import org.pf4j.Extension;
 
 @Extension
@@ -39,7 +42,7 @@ public class ZipViewExtension implements ViewExtension {
     }
 
     @Override
-    public String getIconPath() {
-        return null;
+    public Node getIcon() {
+        return FontIcon.of(Material2MZ.MONETIZATION_ON);
     }
 }

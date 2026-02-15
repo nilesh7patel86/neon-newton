@@ -5,6 +5,8 @@ import org.pf4j.ExtensionPoint;
 
 public interface ViewExtension extends ExtensionPoint {
     String getMenuTitle();
+
     Node getView();
-    String getIconPath(); // Optional icon for the menu
+
+    Node getIcon(); // Optional icon for the menu
 }

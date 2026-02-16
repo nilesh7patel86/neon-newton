@@ -1,6 +1,9 @@
 package com.neon.newton.core;
 
 import com.neon.newton.api.ViewExtension;
+import com.neon.newton.core.plugins.PluginLauncher;
+import com.neon.newton.core.plugins.PluginManagementView;
+import com.neon.newton.core.preferences.UserPreferencesView;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -9,14 +12,14 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
-public class MainController {
+public class NeonNewtonUI {
     private final BorderPane root;
     private final Sidebar sidebar;
     private final StackPane contentArea;
     private final PluginLauncher pluginLauncher;
     private ViewExtension activeExtension;
 
-    public MainController() {
+    public NeonNewtonUI() {
         root = new BorderPane();
         contentArea = new StackPane();
         sidebar = new Sidebar(this::handleSelection);
@@ -56,7 +59,7 @@ public class MainController {
     private void handleSelection(Object selection) {
         if (selection instanceof String && selection.equals("SETTINGS")) {
             activeExtension = null;
-            switchView(new SettingsView(sidebar), "SETTINGS");
+            switchView(new UserPreferencesView(sidebar), "SETTINGS");
         } else if (selection instanceof String && selection.equals("MANAGE")) {
             activeExtension = null;
             switchView(new PluginManagementView(), "MANAGE");

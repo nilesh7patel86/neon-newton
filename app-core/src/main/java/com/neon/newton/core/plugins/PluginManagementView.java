@@ -1,4 +1,4 @@
-package com.neon.newton.core;
+package com.neon.newton.core.plugins;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.*;

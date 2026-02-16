@@ -1,4 +1,4 @@
-package com.neon.newton.core;
+package com.neon.newton.core.plugins;
 
 import com.neon.newton.api.ViewExtension;
 import javafx.geometry.Insets;

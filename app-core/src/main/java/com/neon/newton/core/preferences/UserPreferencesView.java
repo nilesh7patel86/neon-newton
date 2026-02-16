@@ -1,15 +1,17 @@
-package com.neon.newton.core;
+package com.neon.newton.core.preferences;
 
+import com.neon.newton.core.Sidebar;
+import com.neon.newton.core.theme.Theme;
+import com.neon.newton.core.theme.ThemeService;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.Priority;
 
-public class SettingsView extends VBox {
+public class UserPreferencesView extends VBox {
     private final Sidebar sidebar;
 
-    public SettingsView(Sidebar sidebar) {
+    public UserPreferencesView(Sidebar sidebar) {
         this.sidebar = sidebar;
         setSpacing(20);
         setPadding(new Insets(20));

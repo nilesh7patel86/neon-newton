@@ -1,4 +1,4 @@
-package com.neon.newton.core;
+package com.neon.newton.core.theme;
 
 public record Theme(String id, String name, String cssPath, boolean isAtlantaFX) {
     @Override

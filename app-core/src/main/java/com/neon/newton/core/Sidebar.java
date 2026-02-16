@@ -8,9 +8,7 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -18,19 +16,22 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.material2.Material2AL;
 import org.kordamp.ikonli.material2.Material2MZ;
 
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class Sidebar extends VBox {
     private static final String PREF_SIDEBAR_COLLAPSED = "sidebar-collapsed";
-    private final Consumer<Object> onSelection; // Object can be ViewExtension or "MANAGE"
+    private final Consumer<Object> onSelection; // Object can be ViewExtension or "MANAGE" or "SETTINGS"
     private boolean collapsed;
     private final VBox navContainer;
     private final Button toggleBtn;
+    private final Button quickLaunchBtn;
     private final Button manageBtn;
     private final Button refreshBtn;
-    private final Button settingsBtn; // Added settingsBtn field
+    private final Button settingsBtn;
     private final Button logoutBtn;
-    private Object activeItem; // ViewExtension or "MANAGE"
+    private Object activeItem; // ViewExtension or String
     private final Label titleLabel;
     private final Timeline animation = new Timeline();
 
@@ -63,50 +64,57 @@ public class Sidebar extends VBox {
 
         header.getChildren().addAll(toggleBtn, titleLabel);
 
-        // Navigation section
+        // Quick Launch Button
+        quickLaunchBtn = new Button(collapsed ? "" : "Quick Launch (Ctrl+K)");
+        quickLaunchBtn.setGraphic(new FontIcon(Material2MZ.SEARCH));
+        quickLaunchBtn.getStyleClass().add("action-button");
+        quickLaunchBtn.setStyle("-fx-background-color: -color-accent-subtle; -fx-text-fill: -color-accent-fg;");
+        quickLaunchBtn.setMaxWidth(Double.MAX_VALUE);
+        quickLaunchBtn.setOnAction(e -> {
+            // Trigger Ctrl+K logic via robot since we can't access private method
+            if (getScene() != null) {
+                javafx.scene.robot.Robot robot = new javafx.scene.robot.Robot();
+                robot.keyPress(javafx.scene.input.KeyCode.CONTROL);
+                robot.keyType(javafx.scene.input.KeyCode.K);
+                robot.keyRelease(javafx.scene.input.KeyCode.CONTROL);
+            }
+        });
+        if (collapsed)
+            Tooltip.install(quickLaunchBtn, new Tooltip("Quick Launch (Ctrl+K)"));
+
+        // Navigation section (Accordion or Flat List)
         navContainer = new VBox(5);
         VBox.setVgrow(navContainer, Priority.ALWAYS);
 
         // Footer section
         VBox footer = new VBox(5);
 
-        refreshBtn = new Button(collapsed ? "" : "Refresh Plugins");
-        refreshBtn.setGraphic(new FontIcon(Material2MZ.REFRESH));
-        refreshBtn.getStyleClass().add("refresh-button");
-        refreshBtn.setMaxWidth(Double.MAX_VALUE);
-        refreshBtn.setOnAction(e -> PluginService.getInstance().reload());
-        if (collapsed)
-            Tooltip.install(refreshBtn, new Tooltip("Refresh Plugins"));
+        refreshBtn = createFooterButton("Refresh Plugins", Material2MZ.REFRESH, "refresh-button",
+                e -> PluginService.getInstance().reload());
+        settingsBtn = createFooterButton("Settings", Material2MZ.SETTINGS, "settings-button",
+                e -> onSelection.accept("SETTINGS"));
+        manageBtn = createFooterButton("Manage Plugins", Material2MZ.WIDGETS, "manage-button",
+                e -> onSelection.accept("MANAGE"));
+        logoutBtn = createFooterButton("Go Out", Material2AL.LOG_OUT, "go-out-button", e -> Platform.exit());
 
-        settingsBtn = new Button(collapsed ? "" : "Settings");
-        settingsBtn.setGraphic(new FontIcon(Material2MZ.SETTINGS));
-        settingsBtn.getStyleClass().add("settings-button");
-        settingsBtn.setMaxWidth(Double.MAX_VALUE);
-        settingsBtn.setOnAction(e -> onSelection.accept("SETTINGS"));
-        if (collapsed)
-            Tooltip.install(settingsBtn, new Tooltip("Settings"));
+        footer.getChildren().addAll(refreshBtn, settingsBtn, manageBtn, logoutBtn);
 
-        manageBtn = new Button(collapsed ? "" : "Manage Plugins");
-        manageBtn.setGraphic(new FontIcon(Material2MZ.WIDGETS));
-        manageBtn.getStyleClass().add("manage-button");
-        manageBtn.setMaxWidth(Double.MAX_VALUE);
-        manageBtn.setOnAction(e -> onSelection.accept("MANAGE"));
-        if (collapsed)
-            Tooltip.install(manageBtn, new Tooltip("Manage Plugins"));
-
-        logoutBtn = new Button(collapsed ? "" : "Go Out");
-        logoutBtn.setGraphic(new FontIcon(Material2AL.LOG_OUT));
-        logoutBtn.getStyleClass().add("go-out-button");
-        logoutBtn.setMaxWidth(Double.MAX_VALUE);
-        logoutBtn.setOnAction(e -> Platform.exit());
-        if (collapsed)
-            Tooltip.install(logoutBtn, new Tooltip("Go Out"));
-
-        footer.getChildren().addAll(refreshBtn, settingsBtn, manageBtn, logoutBtn); // Added settingsBtn to footer
-
-        getChildren().addAll(header, navContainer, footer);
+        getChildren().addAll(header, quickLaunchBtn, navContainer, footer);
 
         initPluginObserver();
+    }
+
+    // Helper to create footer buttons to reduce boilerplate
+    private Button createFooterButton(String text, org.kordamp.ikonli.Ikon icon, String styleClass,
+            javafx.event.EventHandler<javafx.event.ActionEvent> action) {
+        Button btn = new Button(collapsed ? "" : text);
+        btn.setGraphic(new FontIcon(icon));
+        btn.getStyleClass().add(styleClass);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setOnAction(action);
+        if (collapsed)
+            Tooltip.install(btn, new Tooltip(text));
+        return btn;
     }
 
     public void toggle() {
@@ -118,25 +126,21 @@ public class Sidebar extends VBox {
 
         double targetWidth = collapsed ? 80 : 250;
 
-        // Instant visual changes before animation
+        // Instant visual changes
         if (!collapsed) {
             getStyleClass().remove("collapsed");
             titleLabel.setText("APPLICATIONS");
-            refreshBtn.setText("Refresh Plugins");
-            settingsBtn.setText("Settings"); // Updated for settingsBtn
-            manageBtn.setText("Manage Plugins");
-            logoutBtn.setText("Go Out");
+            quickLaunchBtn.setText("Quick Launch (Ctrl+K)");
+            updateFooterButtonsText(false);
             toggleBtn.setGraphic(new FontIcon(Material2MZ.MENU));
-            Tooltip.uninstall(refreshBtn, null);
-            Tooltip.uninstall(settingsBtn, null); // Updated for settingsBtn
-            Tooltip.uninstall(manageBtn, null);
-            updatePluginButtons();
         } else {
             toggleBtn.setGraphic(new FontIcon(Material2MZ.MENU_OPEN));
-            Tooltip.install(refreshBtn, new Tooltip("Refresh Plugins"));
-            Tooltip.install(settingsBtn, new Tooltip("Settings")); // Updated for settingsBtn
-            Tooltip.install(manageBtn, new Tooltip("Manage Plugins"));
+            quickLaunchBtn.setText("");
         }
+
+        // Visual updates that depend on state
+        updatePluginButtons();
+        updateFooterTooltips();
 
         KeyValue widthValue = new KeyValue(prefWidthProperty(), targetWidth);
         KeyFrame frame = new KeyFrame(Duration.millis(300), widthValue);
@@ -146,15 +150,41 @@ public class Sidebar extends VBox {
             if (collapsed) {
                 getStyleClass().add("collapsed");
                 titleLabel.setText("");
-                refreshBtn.setText("");
-                settingsBtn.setText(""); // Updated for settingsBtn
-                manageBtn.setText("");
-                logoutBtn.setText("");
-                updatePluginButtons();
+                updateFooterButtonsText(true);
             }
         });
 
         animation.play();
+    }
+
+    private void updateFooterButtonsText(boolean isCollapsed) {
+        if (isCollapsed) {
+            refreshBtn.setText("");
+            settingsBtn.setText("");
+            manageBtn.setText("");
+            logoutBtn.setText("");
+        } else {
+            refreshBtn.setText("Refresh Plugins");
+            settingsBtn.setText("Settings");
+            manageBtn.setText("Manage Plugins");
+            logoutBtn.setText("Go Out");
+        }
+    }
+
+    private void updateFooterTooltips() {
+        if (collapsed) {
+            Tooltip.install(quickLaunchBtn, new Tooltip("Quick Launch (Ctrl+K)"));
+            Tooltip.install(refreshBtn, new Tooltip("Refresh Plugins"));
+            Tooltip.install(settingsBtn, new Tooltip("Settings"));
+            Tooltip.install(manageBtn, new Tooltip("Manage Plugins"));
+            Tooltip.install(logoutBtn, new Tooltip("Go Out"));
+        } else {
+            Tooltip.uninstall(quickLaunchBtn, null);
+            Tooltip.uninstall(refreshBtn, null);
+            Tooltip.uninstall(settingsBtn, null);
+            Tooltip.uninstall(manageBtn, null);
+            Tooltip.uninstall(logoutBtn, null);
+        }
     }
 
     public boolean isCollapsed() {
@@ -169,55 +199,92 @@ public class Sidebar extends VBox {
 
     private void updatePluginButtons() {
         navContainer.getChildren().clear();
-        for (ViewExtension ext : PluginService.getInstance().getExtensions()) {
-            Button navButton = new Button();
-            navButton.setGraphic(ext.getIcon());
-            navButton.getStyleClass().add("nav-button");
-            navButton.setMaxWidth(Double.MAX_VALUE);
-            navButton.setUserData(ext); // Store the extension for later retrieval
 
-            if (collapsed) {
-                navButton.setText("");
-                Tooltip.install(navButton, new Tooltip(ext.getMenuTitle()));
-            } else {
-                navButton.setText(ext.getMenuTitle());
-                Tooltip.uninstall(navButton, null);
+        if (collapsed) {
+            // Flat list of icons when collapsed
+            for (ViewExtension ext : PluginService.getInstance().getExtensions()) {
+                navContainer.getChildren().add(createNavButton(ext));
+            }
+        } else {
+            // Categorized Accordion when expanded
+            Accordion accordion = new Accordion();
+            Map<String, List<ViewExtension>> pluginsByCategory = PluginService.getInstance().getPluginsByCategory();
+
+            for (String category : PluginService.getInstance().getAllCategories()) {
+                VBox categoryContent = new VBox(5);
+                categoryContent.setPadding(new Insets(10, 0, 10, 0)); // Padding inside pane
+
+                List<ViewExtension> plugins = pluginsByCategory.get(category);
+                if (plugins != null) {
+                    for (ViewExtension ext : plugins) {
+                        categoryContent.getChildren().add(createNavButton(ext));
+                    }
+                }
+
+                TitledPane pane = new TitledPane(category, categoryContent);
+                pane.setAnimated(true);
+                accordion.getPanes().add(pane);
+
+                // If active item is in this category, expand it
+                if (activeItem instanceof ViewExtension active) {
+                    if (category.equals(active.getCategory())) {
+                        accordion.setExpandedPane(pane);
+                    }
+                }
             }
 
-            navButton.setOnAction(e -> onSelection.accept(ext));
-
-            if (ext.equals(activeItem)) {
-                navButton.getStyleClass().add("active");
+            // Expand first pane if nothing active
+            if (accordion.getExpandedPane() == null && !accordion.getPanes().isEmpty()) {
+                accordion.setExpandedPane(accordion.getPanes().getFirst());
             }
 
-            navContainer.getChildren().add(navButton);
+            navContainer.getChildren().add(accordion);
         }
+    }
+
+    private Button createNavButton(ViewExtension ext) {
+        Button navButton = new Button();
+        navButton.setGraphic(ext.getIcon());
+        navButton.getStyleClass().add("nav-button");
+        navButton.setMaxWidth(Double.MAX_VALUE);
+        navButton.setUserData(ext);
+
+        if (collapsed) {
+            navButton.setText("");
+            Tooltip.install(navButton, new Tooltip(ext.getMenuTitle() + "\n(" + ext.getCategory() + ")"));
+        } else {
+            navButton.setText(ext.getMenuTitle());
+            // No tooltip needed when expanded, usually
+        }
+
+        navButton.setOnAction(e -> onSelection.accept(ext));
+
+        if (ext.equals(activeItem)) {
+            navButton.getStyleClass().add("active");
+        }
+
+        return navButton;
     }
 
     public void setActiveItem(Object item) {
         this.activeItem = item;
 
-        // Clear all active states
-        navContainer.getChildren().forEach(node -> node.getStyleClass().remove("active"));
+        // Visual update is tricky with Accordion regeneration
+        // easiest is to re-render or find button.
+        // Re-rendering is safer to ensure correct expansion state.
+        updatePluginButtons();
+
+        // Footer buttons active state
         refreshBtn.getStyleClass().remove("active");
         settingsBtn.getStyleClass().remove("active");
         manageBtn.getStyleClass().remove("active");
-        logoutBtn.getStyleClass().remove("active"); // Ensure logout button also clears active state
+        logoutBtn.getStyleClass().remove("active");
 
-        // Set active state
-        if (item instanceof String) {
-            String itemStr = (String) item;
-            if (itemStr.equals("SETTINGS")) {
+        if (item instanceof String itemStr) {
+            if (itemStr.equals("SETTINGS"))
                 settingsBtn.getStyleClass().add("active");
-            } else if (itemStr.equals("MANAGE")) {
+            else if (itemStr.equals("MANAGE"))
                 manageBtn.getStyleClass().add("active");
-            }
-        } else if (item instanceof ViewExtension) {
-            // Find and highlight the corresponding nav button
-            navContainer.getChildren().stream()
-                    .filter(node -> node.getUserData() != null && node.getUserData().equals(item))
-                    .findFirst()
-                    .ifPresent(node -> node.getStyleClass().add("active"));
         }
     }
 }

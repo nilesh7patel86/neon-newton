@@ -32,4 +32,19 @@ public class WelcomeViewExtension implements ViewExtension {
     public Node getIcon() {
         return FontIcon.of(Material2AL.ADD_SHOPPING_CART);
     }
+
+    @Override
+    public String getCategory() {
+        return "Getting Started";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Welcome screen for new users";
+    }
+
+    @Override
+    public String getKeywords() {
+        return "welcome,intro,start,hello,getting started";
+    }
 }

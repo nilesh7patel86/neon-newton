@@ -11,8 +11,9 @@ import org.pf4j.PluginWrapper;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class PluginService {
     private static PluginService instance;
@@ -231,5 +232,56 @@ public class PluginService {
 
     public ObservableList<PluginWrapper> getPlugins() {
         return plugins;
+    }
+
+    /**
+     * Get all plugins grouped by category.
+     * 
+     * @return Map of category name to list of plugins in that category
+     */
+    public Map<String, List<ViewExtension>> getPluginsByCategory() {
+        return extensions.stream()
+                .collect(Collectors.groupingBy(ViewExtension::getCategory));
+    }
+
+    /**
+     * Get all unique categories from loaded plugins.
+     * 
+     * @return Sorted list of category names
+     */
+    public List<String> getAllCategories() {
+        return extensions.stream()
+                .map(ViewExtension::getCategory)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Search/filter plugins by query string.
+     * Searches in plugin name, description, keywords, and category.
+     * 
+     * @param query search query (case-insensitive)
+     * @return List of matching plugins
+     */
+    public List<ViewExtension> searchPlugins(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return new ArrayList<>(extensions);
+        }
+
+        String lowerQuery = query.toLowerCase();
+        return extensions.stream()
+                .filter(ext -> {
+                    String name = ext.getMenuTitle().toLowerCase();
+                    String desc = ext.getDescription().toLowerCase();
+                    String keywords = ext.getKeywords().toLowerCase();
+                    String category = ext.getCategory().toLowerCase();
+
+                    return name.contains(lowerQuery) ||
+                            desc.contains(lowerQuery) ||
+                            keywords.contains(lowerQuery) ||
+                            category.contains(lowerQuery);
+                })
+                .collect(Collectors.toList());
     }
 }

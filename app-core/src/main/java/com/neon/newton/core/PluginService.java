@@ -4,7 +4,10 @@ import com.neon.newton.api.ViewExtension;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.pf4j.*;
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.PluginManager;
+import org.pf4j.PluginState;
+import org.pf4j.PluginWrapper;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -69,7 +72,7 @@ public class PluginService {
     private void startMonitoring() {
         try {
             this.watchService = FileSystems.getDefault().newWatchService();
-            Path pluginsRoot = pluginManager.getPluginsRoot();
+            Path pluginsRoot = pluginManager.getPluginsRoots().getFirst();
             System.out.println("Monitoring plugins directory: " + pluginsRoot.toAbsolutePath());
 
             pluginsRoot.register(watchService,
@@ -210,7 +213,7 @@ public class PluginService {
     }
 
     public void installPlugin(Path sourcePath) throws IOException {
-        Path pluginsDir = pluginManager.getPluginsRoot();
+        Path pluginsDir = pluginManager.getPluginsRoots().getFirst();
         Path targetPath = pluginsDir.resolve(sourcePath.getFileName());
 
         System.out.println("Installing plugin by copying to: " + targetPath);

@@ -5,27 +5,20 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Properties;
-
 public class ThemeService {
     private static ThemeService instance;
-    private static final String PREFS_DIR = "preferences";
-    private static final String THEME_FILE = "theme.properties";
     private static final String THEME_PREF_KEY = "active-theme-id";
 
     private final ObservableList<Theme> availableThemes = FXCollections.observableArrayList();
     private Theme currentTheme;
-    private final List<Consumer<Theme>> listeners = new ArrayList<>();
+    private final List<WeakReference<Consumer<Theme>>> listeners = new ArrayList<>();
 
     private ThemeService() {
         // Built-in themes
@@ -35,14 +28,11 @@ public class ThemeService {
 
         // AtlantaFX themes
         availableThemes.add(new Theme("primer-dark", "Primer Dark", new PrimerDark().getUserAgentStylesheet(), true));
-        availableThemes
-                .add(new Theme("primer-light", "Primer Light", new PrimerLight().getUserAgentStylesheet(), true));
+        availableThemes.add(new Theme("primer-light", "Primer Light", new PrimerLight().getUserAgentStylesheet(), true));
         availableThemes.add(new Theme("nord-dark", "Nord Dark", new NordDark().getUserAgentStylesheet(), true));
         availableThemes.add(new Theme("nord-light", "Nord Light", new NordLight().getUserAgentStylesheet(), true));
-        availableThemes
-                .add(new Theme("cupertino-dark", "Cupertino Dark", new CupertinoDark().getUserAgentStylesheet(), true));
-        availableThemes.add(
-                new Theme("cupertino-light", "Cupertino Light", new CupertinoLight().getUserAgentStylesheet(), true));
+        availableThemes.add(new Theme("cupertino-dark", "Cupertino Dark", new CupertinoDark().getUserAgentStylesheet(), true));
+        availableThemes.add(new Theme("cupertino-light", "Cupertino Light", new CupertinoLight().getUserAgentStylesheet(), true));
         availableThemes.add(new Theme("dracula", "Dracula", new Dracula().getUserAgentStylesheet(), true));
         availableThemes.add(new Theme("vitality", "Vitality", "/themes/vitality-theme.css", false));
 
@@ -54,44 +44,15 @@ public class ThemeService {
                 .orElse(availableThemes.stream()
                         .filter(t -> t.id().equals("primer-dark"))
                         .findFirst()
-                        .orElse(availableThemes.get(0)));
-    }
-
-    private File getPrefsDir() {
-        Path baseDir = Paths.get("").toAbsolutePath();
-        if (baseDir.toString().endsWith("app-core")) {
-            baseDir = baseDir.getParent();
-        }
-        File dir = baseDir.resolve(PREFS_DIR).toFile();
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        return dir;
+                        .orElse(availableThemes.getFirst()));
     }
 
     private String loadThemePreference() {
-        Properties props = new Properties();
-        File file = new File(getPrefsDir(), THEME_FILE);
-        if (file.exists()) {
-            try (FileInputStream in = new FileInputStream(file)) {
-                props.load(in);
-                return props.getProperty(THEME_PREF_KEY, "primer-dark");
-            } catch (IOException e) {
-                System.err.println("Failed to load theme preference: " + e.getMessage());
-            }
-        }
-        return "primer-dark";
+        return UserPreferenceService.getInstance().getString(THEME_PREF_KEY, "primer-dark");
     }
 
     private void saveThemePreference(String themeId) {
-        Properties props = new Properties();
-        File file = new File(getPrefsDir(), THEME_FILE);
-        props.setProperty(THEME_PREF_KEY, themeId);
-        try (FileOutputStream out = new FileOutputStream(file)) {
-            props.store(out, "Application Theme Preference");
-        } catch (IOException e) {
-            System.err.println("Failed to save theme preference: " + e.getMessage());
-        }
+        UserPreferenceService.getInstance().setString(THEME_PREF_KEY, themeId);
     }
 
     public static ThemeService getInstance() {
@@ -113,7 +74,19 @@ public class ThemeService {
         if (theme != null && !theme.equals(currentTheme)) {
             this.currentTheme = theme;
             saveThemePreference(theme.id());
-            listeners.forEach(listener -> listener.accept(theme));
+            notifyListeners(theme);
+        }
+    }
+
+    private void notifyListeners(Theme theme) {
+        Iterator<WeakReference<Consumer<Theme>>> it = listeners.iterator();
+        while (it.hasNext()) {
+            Consumer<Theme> listener = it.next().get();
+            if (listener == null) {
+                it.remove();
+            } else {
+                listener.accept(theme);
+            }
         }
     }
 
@@ -134,6 +107,6 @@ public class ThemeService {
     }
 
     public void addThemeChangeListener(Consumer<Theme> listener) {
-        listeners.add(listener);
+        listeners.add(new WeakReference<>(listener));
     }
 }

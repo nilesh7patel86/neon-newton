@@ -1,15 +1,15 @@
 package com.neon.newton.core;
 
-import org.pf4j.PluginWrapper;
-import org.pf4j.PluginState;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import org.pf4j.PluginState;
+import org.pf4j.PluginWrapper;
+
 import java.io.File;
-import java.nio.file.Path;
 import java.io.IOException;
 
 public class PluginManagementView extends VBox {
@@ -56,26 +56,6 @@ public class PluginManagementView extends VBox {
 
         header.getChildren().addAll(titleBox, installBtn);
         getChildren().add(header);
-
-        setupThemeSelector();
-    }
-
-    private void setupThemeSelector() {
-        HBox themeBox = new HBox(15);
-        themeBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        themeBox.getStyleClass().add("theme-selector-container");
-
-        Label themeLabel = new Label("Application Theme:");
-        themeLabel.getStyleClass().add("theme-label");
-
-        javafx.scene.control.ComboBox<Theme> themeCombo = new javafx.scene.control.ComboBox<>();
-        themeCombo.setItems(ThemeService.getInstance().getAvailableThemes());
-        themeCombo.setValue(ThemeService.getInstance().getCurrentTheme());
-
-        themeCombo.setOnAction(e -> ThemeService.getInstance().setTheme(themeCombo.getValue()));
-
-        themeBox.getChildren().addAll(themeLabel, themeCombo);
-        getChildren().add(themeBox);
     }
 
     private void setupPluginList() {
@@ -83,9 +63,7 @@ public class PluginManagementView extends VBox {
         listContainer.getStyleClass().add("plugin-list-container");
 
         PluginService.getInstance().getPlugins()
-                .addListener((javafx.collections.ListChangeListener<PluginWrapper>) c -> {
-                    renderPlugins(listContainer);
-                });
+                .addListener((javafx.collections.ListChangeListener<PluginWrapper>) c -> renderPlugins(listContainer));
 
         renderPlugins(listContainer);
 
@@ -144,15 +122,11 @@ public class PluginManagementView extends VBox {
     }
 
     private String getStatusClass(PluginState state) {
-        switch (state) {
-            case STARTED:
-                return "plugin-status-started";
-            case STOPPED:
-                return "plugin-status-stopped";
-            case DISABLED:
-                return "plugin-status-disabled";
-            default:
-                return "plugin-status-default";
-        }
+        return switch (state) {
+            case STARTED -> "plugin-status-started";
+            case STOPPED -> "plugin-status-stopped";
+            case DISABLED -> "plugin-status-disabled";
+            default -> "plugin-status-default";
+        };
     }
 }

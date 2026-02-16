@@ -32,17 +32,22 @@ public class MainController {
     }
 
     private void handleSelection(Object selection) {
-        if (selection instanceof String && selection.equals("MANAGE")) {
+        if (selection instanceof String && selection.equals("SETTINGS")) {
             activeExtension = null;
-            contentArea.getChildren().clear();
-            contentArea.getChildren().add(new PluginManagementView());
-            sidebar.setActiveItem("MANAGE");
+            switchView(new SettingsView(sidebar), "SETTINGS");
+        } else if (selection instanceof String && selection.equals("MANAGE")) {
+            activeExtension = null;
+            switchView(new PluginManagementView(), "MANAGE");
         } else if (selection instanceof ViewExtension ext) {
             activeExtension = ext;
-            contentArea.getChildren().clear();
-            contentArea.getChildren().add(ext.getView());
-            sidebar.setActiveItem(ext);
+            switchView(ext.getView(), ext);
         }
+    }
+
+    private void switchView(javafx.scene.Node view, Object activeItem) {
+        contentArea.getChildren().clear();
+        contentArea.getChildren().add(view);
+        sidebar.setActiveItem(activeItem);
     }
 
     public Pane getRoot() {

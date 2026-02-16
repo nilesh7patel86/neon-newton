@@ -28,6 +28,7 @@ public class Sidebar extends VBox {
     private final Button toggleBtn;
     private final Button manageBtn;
     private final Button refreshBtn;
+    private final Button settingsBtn; // Added settingsBtn field
     private final Button logoutBtn;
     private Object activeItem; // ViewExtension or "MANAGE"
     private final Label titleLabel;
@@ -77,8 +78,16 @@ public class Sidebar extends VBox {
         if (collapsed)
             Tooltip.install(refreshBtn, new Tooltip("Refresh Plugins"));
 
+        settingsBtn = new Button(collapsed ? "" : "Settings");
+        settingsBtn.setGraphic(new FontIcon(Material2MZ.SETTINGS));
+        settingsBtn.getStyleClass().add("settings-button");
+        settingsBtn.setMaxWidth(Double.MAX_VALUE);
+        settingsBtn.setOnAction(e -> onSelection.accept("SETTINGS"));
+        if (collapsed)
+            Tooltip.install(settingsBtn, new Tooltip("Settings"));
+
         manageBtn = new Button(collapsed ? "" : "Manage Plugins");
-        manageBtn.setGraphic(new FontIcon(Material2MZ.SETTINGS));
+        manageBtn.setGraphic(new FontIcon(Material2MZ.WIDGETS));
         manageBtn.getStyleClass().add("manage-button");
         manageBtn.setMaxWidth(Double.MAX_VALUE);
         manageBtn.setOnAction(e -> onSelection.accept("MANAGE"));
@@ -93,14 +102,14 @@ public class Sidebar extends VBox {
         if (collapsed)
             Tooltip.install(logoutBtn, new Tooltip("Go Out"));
 
-        footer.getChildren().addAll(refreshBtn, manageBtn, logoutBtn);
+        footer.getChildren().addAll(refreshBtn, settingsBtn, manageBtn, logoutBtn); // Added settingsBtn to footer
 
         getChildren().addAll(header, navContainer, footer);
 
         initPluginObserver();
     }
 
-    private void toggle() {
+    public void toggle() {
         collapsed = !collapsed;
         UserPreferenceService.getInstance().setBoolean(PREF_SIDEBAR_COLLAPSED, collapsed);
 
@@ -114,15 +123,18 @@ public class Sidebar extends VBox {
             getStyleClass().remove("collapsed");
             titleLabel.setText("APPLICATIONS");
             refreshBtn.setText("Refresh Plugins");
+            settingsBtn.setText("Settings"); // Updated for settingsBtn
             manageBtn.setText("Manage Plugins");
             logoutBtn.setText("Go Out");
             toggleBtn.setGraphic(new FontIcon(Material2MZ.MENU));
             Tooltip.uninstall(refreshBtn, null);
+            Tooltip.uninstall(settingsBtn, null); // Updated for settingsBtn
             Tooltip.uninstall(manageBtn, null);
             updatePluginButtons();
         } else {
             toggleBtn.setGraphic(new FontIcon(Material2MZ.MENU_OPEN));
             Tooltip.install(refreshBtn, new Tooltip("Refresh Plugins"));
+            Tooltip.install(settingsBtn, new Tooltip("Settings")); // Updated for settingsBtn
             Tooltip.install(manageBtn, new Tooltip("Manage Plugins"));
         }
 
@@ -135,6 +147,7 @@ public class Sidebar extends VBox {
                 getStyleClass().add("collapsed");
                 titleLabel.setText("");
                 refreshBtn.setText("");
+                settingsBtn.setText(""); // Updated for settingsBtn
                 manageBtn.setText("");
                 logoutBtn.setText("");
                 updatePluginButtons();
@@ -144,10 +157,13 @@ public class Sidebar extends VBox {
         animation.play();
     }
 
+    public boolean isCollapsed() {
+        return collapsed;
+    }
+
     private void initPluginObserver() {
-        PluginService.getInstance().getExtensions().addListener((ListChangeListener<ViewExtension>) c -> {
-            Platform.runLater(this::updatePluginButtons);
-        });
+        PluginService.getInstance().getExtensions()
+                .addListener((ListChangeListener<ViewExtension>) c -> Platform.runLater(this::updatePluginButtons));
         updatePluginButtons();
     }
 
@@ -158,6 +174,7 @@ public class Sidebar extends VBox {
             navButton.setGraphic(ext.getIcon());
             navButton.getStyleClass().add("nav-button");
             navButton.setMaxWidth(Double.MAX_VALUE);
+            navButton.setUserData(ext); // Store the extension for later retrieval
 
             if (collapsed) {
                 navButton.setText("");
@@ -177,15 +194,30 @@ public class Sidebar extends VBox {
         }
     }
 
-    public void setActiveItem(Object activeItem) {
-        this.activeItem = activeItem;
+    public void setActiveItem(Object item) {
+        this.activeItem = item;
 
-        // Update manage button active state
+        // Clear all active states
+        navContainer.getChildren().forEach(node -> node.getStyleClass().remove("active"));
+        refreshBtn.getStyleClass().remove("active");
+        settingsBtn.getStyleClass().remove("active");
         manageBtn.getStyleClass().remove("active");
-        if ("MANAGE".equals(activeItem)) {
-            manageBtn.getStyleClass().add("active");
-        }
+        logoutBtn.getStyleClass().remove("active"); // Ensure logout button also clears active state
 
-        updatePluginButtons();
+        // Set active state
+        if (item instanceof String) {
+            String itemStr = (String) item;
+            if (itemStr.equals("SETTINGS")) {
+                settingsBtn.getStyleClass().add("active");
+            } else if (itemStr.equals("MANAGE")) {
+                manageBtn.getStyleClass().add("active");
+            }
+        } else if (item instanceof ViewExtension) {
+            // Find and highlight the corresponding nav button
+            navContainer.getChildren().stream()
+                    .filter(node -> node.getUserData() != null && node.getUserData().equals(item))
+                    .findFirst()
+                    .ifPresent(node -> node.getStyleClass().add("active"));
+        }
     }
 }

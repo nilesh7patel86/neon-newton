@@ -1,9 +1,6 @@
 package com.neon.newton.core;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
@@ -41,7 +38,7 @@ public class UserPreferenceService {
     private void load() {
         File file = new File(getPrefsDir(), PREFS_FILE);
         if (file.exists()) {
-            try (FileInputStream in = new FileInputStream(file)) {
+            try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
                 properties.load(in);
             } catch (IOException e) {
                 System.err.println("Failed to load user preferences: " + e.getMessage());
@@ -49,9 +46,9 @@ public class UserPreferenceService {
         }
     }
 
-    private void save() {
+    private synchronized void save() {
         File file = new File(getPrefsDir(), PREFS_FILE);
-        try (FileOutputStream out = new FileOutputStream(file)) {
+        try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
             properties.store(out, "User Preferences");
         } catch (IOException e) {
             System.err.println("Failed to save user preferences: " + e.getMessage());

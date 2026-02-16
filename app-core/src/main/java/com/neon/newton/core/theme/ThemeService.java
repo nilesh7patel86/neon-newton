@@ -1,6 +1,7 @@
-package com.neon.newton.core;
+package com.neon.newton.core.theme;
 
 import atlantafx.base.theme.*;
+import com.neon.newton.core.preferences.UserPreferenceService;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,6 +11,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class ThemeService {
@@ -21,11 +23,6 @@ public class ThemeService {
     private final List<WeakReference<Consumer<Theme>>> listeners = new ArrayList<>();
 
     private ThemeService() {
-        // Built-in themes
-        availableThemes.add(new Theme("neon-dark", "Neon Dark", "/styles.css", false));
-        availableThemes.add(new Theme("classic-light", "Classic Light", "/themes/light-theme.css", false));
-        availableThemes.add(new Theme("midnight-blue", "Midnight Blue", "/themes/midnight-theme.css", false));
-
         // AtlantaFX themes
         availableThemes.add(new Theme("primer-dark", "Primer Dark", new PrimerDark().getUserAgentStylesheet(), true));
         availableThemes.add(new Theme("primer-light", "Primer Light", new PrimerLight().getUserAgentStylesheet(), true));
@@ -34,7 +31,6 @@ public class ThemeService {
         availableThemes.add(new Theme("cupertino-dark", "Cupertino Dark", new CupertinoDark().getUserAgentStylesheet(), true));
         availableThemes.add(new Theme("cupertino-light", "Cupertino Light", new CupertinoLight().getUserAgentStylesheet(), true));
         availableThemes.add(new Theme("dracula", "Dracula", new Dracula().getUserAgentStylesheet(), true));
-        availableThemes.add(new Theme("vitality", "Vitality", "/themes/vitality-theme.css", false));
 
         // Load persisted theme
         String savedId = loadThemePreference();
@@ -96,12 +92,12 @@ public class ThemeService {
 
             // Still add our base styles as an overlay for NeonNewton specific components
             scene.getStylesheets().clear();
-            String baseStyles = getClass().getResource("/styles.css").toExternalForm();
+            String baseStyles = Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm();
             scene.getStylesheets().add(baseStyles);
         } else {
             Application.setUserAgentStylesheet(null); // Reset to default
             scene.getStylesheets().clear();
-            String css = getClass().getResource(currentTheme.cssPath()).toExternalForm();
+            String css = Objects.requireNonNull(getClass().getResource(currentTheme.cssPath())).toExternalForm();
             scene.getStylesheets().add(css);
         }
     }

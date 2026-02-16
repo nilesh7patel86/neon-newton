@@ -1,4 +1,4 @@
-package com.neon.newton.core;
+package com.neon.newton.core.preferences;
 
 import java.io.*;
 import java.nio.file.Path;

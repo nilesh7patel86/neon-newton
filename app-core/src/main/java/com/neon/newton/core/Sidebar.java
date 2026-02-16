@@ -1,6 +1,8 @@
 package com.neon.newton.core;
 
 import com.neon.newton.api.ViewExtension;
+import com.neon.newton.core.plugins.PluginService;
+import com.neon.newton.core.preferences.UserPreferenceService;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -21,7 +23,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class Sidebar extends VBox {
-    private static final String PREF_SIDEBAR_COLLAPSED = "sidebar-collapsed";
+    private static final String PREF_SIDEBAR_COLLAPSED = "sidebar.collapsed";
     private final Consumer<Object> onSelection; // Object can be ViewExtension or "MANAGE" or "SETTINGS"
     private boolean collapsed;
     private final VBox navContainer;
